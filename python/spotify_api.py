@@ -1,18 +1,44 @@
 import spotipy
+import sys
+import random
 from decouple import config
 from spotipy.oauth2 import SpotifyOAuth
 
-scope = "user-library-read"
+# Scope allows for different permisions as to what the API can access https://developer.spotify.com/documentation/general/guides/scopes/#streaming 
+# Scope uses split() method on string so you can just add scopes to a single string with a space between them for multiple scopes
+scope = "user-library-read user-read-currently-playing user-modify-playback-state"
 client_id=config('SPOTIPY_CLIENT_ID')
 client_secret=config('SPOTIPY_CLIENT_SECRET')
 redirect_uri=config('SPOTIPY_REDIRECT_URI')
 
+# Instantiating Spotify API object and passing appropriate perameters 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope, client_id=client_id,
                      client_secret=client_secret, redirect_uri=redirect_uri))
 
-results = sp.current_user_saved_tracks()
-for idx, item in enumerate(results['items']):
-    track = item['track']
-    print(idx, track['artists'][0]['name'], " – ", track['name'])
+def get_saved_list():
+    '''Retreive current top 20 saved songs and print arist and song name'''
+    results = sp.current_user_saved_tracks()
+    for idx, item in enumerate(results['items']):
+        track = item['track']
+        print(idx, track['artists'][0]['name'], " – ", track['name'])
 
-print(results.keys())
+def get_current_song():
+    '''Retreive current playing song and printing the artist and song name'''
+    results = sp.current_user_playing_track()
+    track = results['item']
+    print(track['artists'][0]['name'], ' - ', f"'{track['name']}'")
+
+def set_song_random():
+    '''Sets current playback song to a random song from saved list(top 20)'''
+    uri = get_random_song()
+    sp.add_to_queue(uri=uri)
+    sp.next_track()
+
+def get_random_song():
+    '''Returns random song ID from top 20 recent saved songs'''
+    results = sp.current_user_saved_tracks()
+    song_id = results['items'][random.randint(0,19)]['track']['id']
+    return song_id
+
+if __name__ == '__main__':
+    globals()[sys.argv[1]]()
