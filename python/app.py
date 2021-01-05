@@ -1,5 +1,5 @@
 from flask import Flask
-from .spotify_api import set_song_random
+from spotify_api import set_song_random
 
 app = Flask(__name__)
 
