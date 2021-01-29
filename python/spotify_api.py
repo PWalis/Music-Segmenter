@@ -3,6 +3,7 @@ import sys
 import random
 from decouple import config
 from spotipy.oauth2 import SpotifyOAuth
+import json
 
 # Scope allows for different permisions as to what the API can access https://developer.spotify.com/documentation/general/guides/scopes/#streaming 
 # Scope uses split() method on string so you can just add scopes to a single string with a space between them for multiple scopes
@@ -39,6 +40,26 @@ def get_random_song():
     results = sp.current_user_saved_tracks()
     song_id = results['items'][random.randint(0,19)]['track']['id']
     return song_id
+
+def current_track_time():
+    ''' Returns tuple (progress_ms, duration_ms) of current track '''
+    results = sp.current_user_playing_track()
+    with open('song_data.json', 'w') as file:
+        json.dump(results, file, indent=4)
+    return (results['progress_ms'], results['item']['duration_ms'])
+
+def ms_to_time(ms):
+    ''' Convers ms to (minute:seconds) fromat as str '''
+    total_seconds = ms//1000
+    minutes = total_seconds//60
+    seconds = total_seconds % 60
+    return f'{minutes}:{seconds}'
+
+def seek_back(seconds=10):
+    '''' Seek will go back the an amount of seconds based on "seconds" parameter'''
+    seconds_in_ms = seconds * 1000
+    ms = current_track_time()[0] - seconds_in_ms
+    sp.seek_track(ms)
 
 if __name__ == '__main__':
     globals()[sys.argv[1]]()
