@@ -1,5 +1,5 @@
 from flask import Flask
-from spotify_api import set_song_random
+from spotify_api import set_song_random, seek_back
 
 app = Flask(__name__)
 
@@ -11,3 +11,8 @@ def hello_world():
 def random_song():
     set_song_random()
     return 'You are now listening to a random song from your saved list'
+
+@app.route('/back/<seconds>')
+def back_seconds(seconds):
+    seek_back(int(seconds))
+    return f'You gone back in time {seconds} seconds'
